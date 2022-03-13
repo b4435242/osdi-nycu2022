@@ -8,18 +8,17 @@
 
 void main()
 {
-    //register unsigned long x0 asm("x0");
-    //unsigned long DTB_BASE = x0;
-    unsigned long DTB_BASE = 0x8200000;
+    register unsigned long x0 asm("x0");
+    unsigned long DTB_BASE = x0;
     // set up serial console
     uart_init();    
     
 
     uart_puts("[kernel] DTB_BASE ");
-    //uart_hex(DTB_BASE);
-    uart_puts("\r\n");
+    uart_hex(DTB_BASE);
+    uart_puts("\n \r");
 
-    /*fdt_traverse((fdt_header*)(DTB_BASE), initramfs_callback);
+    fdt_traverse((fdt_header*)(DTB_BASE), initramfs_callback);
 
     
 
@@ -49,5 +48,5 @@ void main()
         } 
         
 
-    }*/
+    }
 }

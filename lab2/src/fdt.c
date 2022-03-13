@@ -51,6 +51,6 @@ void initramfs_callback(fdt_prop *prop, char* node_name, char *property_name){
         CPIO_BASE = SWAP_ENDIAN(load_addr);
         uart_puts("[initramfs_callback] CPIO_BASE ");
         uart_hex(CPIO_BASE);
-        uart_puts("\r\n");
+        uart_puts("\n\r");
     }
 }
