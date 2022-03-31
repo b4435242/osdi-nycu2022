@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "uart.h": "c",
+        "mbox.h": "c",
+        "reset.h": "c",
+        "cpio.h": "c",
+        "fdt.h": "c"
+    }
+}
