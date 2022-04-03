@@ -1,4 +1,4 @@
-#include "fdt.h"
+#include "include/fdt.h"
 
 #define SWAP_ENDIAN(x)   (((x) >> 24) | (((x) & 0x00FF0000) >> 8) | (((x) & 0x0000FF00) << 8) | ((x) << 24))
 

@@ -122,7 +122,6 @@ el0_irq:
 
 exception_handler:
   save_all
-  //bl exception_entry
   bl print_register
   load_all
   eret

@@ -1,14 +1,14 @@
-#include "timer.h"
+#include "include/timer.h"
 
 Timer timer_queue[100];
 int timer_queue_size = 0;
 
 void core_timer_enable(int seconds){
     
-    asm("msr spsr_el1, xzr"); // EL0
+    //asm("msr spsr_el1, xzr"); // EL0
 
     set_expire_time(seconds);
-    asm(
+    asm volatile(
         "mov x0, 1;"
         "msr cntp_ctl_el0, x0;" // enable
     );
@@ -17,24 +17,27 @@ void core_timer_enable(int seconds){
 }
 
 void core_timer_disable(){
-    asm(
+    asm volatile(
         "mov x0, 0;"
         "msr cntp_ctl_el0, x0;" // disable
     );
 }
 
 void mask_timer_int(){
-    *((unsigned int*)CORE0_TIMER_IRQ_CTRL) = 0; // unmask timer interrupt
+    //*((volatile unsigned int*)CORE0_TIMER_IRQ_CTRL) = 0; // mask timer interrupt
+    mmio_put(CORE0_TIMER_IRQ_CTRL, 0);
+
 }
 void unmask_timer_int(){
-    *((unsigned int*)CORE0_TIMER_IRQ_CTRL) = 2; // unmask timer interrupt
+    //*((volatile unsigned int*)CORE0_TIMER_IRQ_CTRL) = 2; // unmask timer interrupt
+    mmio_put(CORE0_TIMER_IRQ_CTRL, 2);
 }
 
 void set_expire_time(int seconds){
-    asm("mrs x0, cntfrq_el0");
-    register unsigned long long x0 asm("x0");
+    asm volatile("mrs x0, cntfrq_el0");
+    register unsigned long long x0 asm ("x0");
     x0 *= seconds;
-    asm("msr cntp_tval_el0, x0");  // set expired time
+    asm volatile("msr cntp_tval_el0, x0");  // set expired time
     
 }
 

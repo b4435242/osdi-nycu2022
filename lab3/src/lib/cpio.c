@@ -1,24 +1,26 @@
-#include "cpio.h"
+#include "include/cpio.h"
 
 unsigned long CPIO_BASE;
 
-int cpio_search(char *name, extraction *info){
+extraction cpio_search(char *name){
     cpio_newc_header* header = (cpio_newc_header*)CPIO_BASE;
-
+    extraction info;
     while(1) {
-        parse_cpio_header(header, info);
+        parse_cpio_header(header, &info);
+        //uart_puts(info.name);
+        //uart_puts("\r\n");
         // info.namesize counts '\0' 
-        if(!_strncmp(info->name, "TRAILER!!!", 10)||!_strncmp(info->name, name, info->namesize-1)) 
+        if(!_strncmp(info.name, "TRAILER!!!", 10)||!_strncmp(info.name, name, info.namesize-1)) 
             break;
 
-        header = info->next_header;
+        header = info.next_header;
 
     } 
-
-    if (!_strncmp(info->name, name, info->namesize-1)){
-        return 1;
+    if (!_strncmp(info.name, name, info.namesize-1)){
+        uart_puts("1");
+        return info;
     }
-    return 0;
+    return info;
 }
 
 void cpio_ls(){
@@ -78,15 +80,15 @@ void parse_cpio_header(cpio_newc_header* header, extraction *info) {
     if(_strncmp(header->c_magic, "070701", 6))
         return;
 
-    unsigned int name_size = hexstr_2_dec(header->c_namesize, 8);
-    unsigned int file_size = hexstr_2_dec(header->c_filesize, 8);
+    unsigned int name_size = hexstr_2_dec(header->c_namesize, sizeof(header->c_namesize));
+    unsigned int file_size = hexstr_2_dec(header->c_filesize, sizeof(header->c_filesize));
+    unsigned long CPIO_HEADER_SIZE = sizeof(cpio_newc_header);
 
-    unsigned int header_name_size = sizeof(cpio_newc_header)+name_size;
-
-    char* name = (char*)(header+1);
-    char* file = (char*)header+aligned_on_n_bytes(header_name_size, 4);
-    cpio_newc_header* next_header = ((cpio_newc_header*)(file+aligned_on_n_bytes(file_size, 4)));
-
+    char* name = (char*)header+CPIO_HEADER_SIZE;
+    char* file = (char*)cpio_align((char*)header+CPIO_HEADER_SIZE+name_size);
+    cpio_newc_header* next_header = (cpio_newc_header*)cpio_align((unsigned long)(file+file_size));
+    uart_hex(next_header);
+    uart_puts("\r\n");
 
     info->file=file;
     info->name=name;
@@ -96,6 +98,18 @@ void parse_cpio_header(cpio_newc_header* header, extraction *info) {
 
 } 
 
+unsigned long cpio_align (unsigned long v) {
+    unsigned long lower_bits = v & 0x3;
+
+    v = v - lower_bits;
+
+    if (lower_bits > 0)
+    {
+        v = v + 4;
+    }
+
+    return v;
+}
 
 
 

@@ -1,8 +1,7 @@
-#include "../lib/uart.h"
-#include "../lib/fdt.h"
-#include "../lib/shell.h"
-#include "../lib/irq.h"
-#include "../lib/timer.h"
+#include "../lib/include/uart.h"
+#include "../lib/include/fdt.h"
+#include "../lib/include/shell.h"
+#include "../lib/include/irq.h"
 void main()
 {
     register unsigned long x20 asm("x20");

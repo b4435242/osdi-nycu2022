@@ -1,36 +1,52 @@
-#include "program.h"
+#include "include/program.h"
 
+void user_program(){
+    asm(
+        "mov x0, 0;"
+    "1:;"
+        "add x0, x0, 1;"
+        "svc 0;"
+        "cmp x0, 5;"
+        "blt 1b;"
+    "1:;"
+        "b 1b;"
+    );
+}
 
 void exec_user_program(){
     //load
+    uart_puts("start\r\n");
+
     char *p = (char*)0x100000;
-    extraction program;
-    char name[16] = "user_program.img";
-    int res = cpio_search(name, &program);
-    if (!res) return;
+    
+    char name[17] = "user_program.img\0";
+    extraction program = cpio_search(name);
+    //if (!res) return;
     for(int i=0; i<program.filesize; i++){
         p[i] = program.file[i];
     }
 
-    el1_to_el0((unsigned long)p, (unsigned long)p, 0x3c0);
+    uart_puts("prepare program\r\n");
+    el1_to_el0((unsigned long long)p, (unsigned long long)p, 0x3c0);
     
 }
 
-void el1_to_el0(unsigned long lr, unsigned long sp, unsigned long spsr){
-    register unsigned long x0 asm("x0");
-    register unsigned long x1 asm("x1");
-    register unsigned long x2 asm("x2");
+void el1_to_el0(unsigned long long lr, unsigned long long sp, unsigned long long spsr){
+    volatile register unsigned long long x10 asm("x10");
+    volatile register unsigned long long x11 asm("x11");
+    volatile register unsigned long long x12 asm("x12");
 
-    x0 = lr;
-    x1 = sp;
-    x2 = spsr;
-
+    x10 = lr;
     if (lr!=0)
-        asm("msr elr_el1, x0");
+        asm volatile("msr elr_el1, x10");
     else
-        asm("msr elr_el1, lr");
+        asm volatile("msr elr_el1, lr");
 
-    asm("msr sp_el0, x1");
-    asm("msr spsr_el1, x2");
-    asm("eret");
+    x11 = sp;
+    asm volatile("msr sp_el0, x11");
+    x12 = spsr;
+    asm volatile("msr spsr_el1, x12");
+    uart_puts("el1_to_el0\r\n");
+
+    asm volatile("eret");
 }

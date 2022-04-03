@@ -29,9 +29,9 @@ typedef struct{
     cpio_newc_header* next_header;
 } extraction;
 
-int cpio_search(char *, extraction*);
+extraction cpio_search(char *name);
 void cpio_ls();
 void cpio_cat();
 void parse_cpio_header(cpio_newc_header* header, extraction *info); 
-
+unsigned long cpio_align (unsigned long v);
 #endif

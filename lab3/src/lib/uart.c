@@ -1,5 +1,5 @@
 
-#include "uart.h"
+#include "include/uart.h"
 
 /* Auxilary mini UART registers */
 #define AUX_ENABLE      ((volatile unsigned int*)(MMIO_BASE+0x00215004))
@@ -155,11 +155,15 @@ int uart_async_read(char* p){
 }
 
 void uart_unmask_aux(){
-    *((unsigned int*)IRQs1) = *((unsigned int*)IRQs1) | AUX_GPU_SOURCE; // second level interrupt controller enable bit29 AUX
+    //*((unsigned int*)IRQs1) = *((unsigned int*)IRQs1) | AUX_GPU_SOURCE; // second level interrupt controller enable bit29 AUX
+    unsigned int val = mmio_get(IRQs1);
+    mmio_put(IRQs1, val | AUX_GPU_SOURCE);
 }
 
 void uart_mask_aux(){
-    *((unsigned int*)IRQs1) = *((unsigned int*)IRQs1) & ~AUX_GPU_SOURCE; // second level interrupt controller disable bit29 AUX
+    //*((unsigned int*)IRQs1) = *((unsigned int*)IRQs1) & ~AUX_GPU_SOURCE; // second level interrupt controller disable bit29 AUX
+    unsigned int val = mmio_get(IRQs1);
+    mmio_put(IRQs1, val & ~AUX_GPU_SOURCE);
 }
 
 void uart_enable_transmit_int(){

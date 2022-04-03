@@ -1,4 +1,4 @@
-#include "irq.h"
+#include "include/irq.h"
 
 void enable_int(){
     asm("msr daifclr, 2");
@@ -29,7 +29,7 @@ void concurrent_irq_handler(){
     } else if (irq==GPUINTERRUPT){
         unsigned int gpu_irq = *((unsigned int*)IRQpending1);
         if (gpu_irq==AUX_GPU_SOURCE){
-            //uart_mask_aux(); NOT WORKING!!! CANNOT UNMASK!!!
+            //uart_mask_aux(); //NOT WORKING!!! CANNOT UNMASK!!!
             uart_disable_recv_int();
             uart_disable_transmit_int();
             add_task(aux_handler, 0);

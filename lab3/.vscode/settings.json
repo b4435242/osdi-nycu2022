@@ -4,6 +4,12 @@
         "mbox.h": "c",
         "reset.h": "c",
         "cpio.h": "c",
-        "fdt.h": "c"
+        "fdt.h": "c",
+        "mmio.h": "c",
+        "program.h": "c",
+        "shell.h": "c",
+        "stdlib.h": "c",
+        "task.h": "c",
+        "timer.h": "c"
     }
 }

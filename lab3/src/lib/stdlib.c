@@ -1,4 +1,4 @@
-#include "stdlib.h"
+#include "include/stdlib.h"
 
 // do not count '\0'
 size_t len(char * str){
@@ -46,15 +46,11 @@ void* simple_malloc(size_t size){
   return old;
 }
 
-unsigned int hexstr_2_dec(char field[], int size){
+unsigned int hexstr_2_dec(char* s, int size){
     unsigned int val = 0;
-    int i = 0;
-    while (i<size) //specify size
-    {
+    for (int i=0; i<size; i++) {
         val *= 16;
-        char c = field[i++];
-        //if (size==-1&&c=='\0') // not specify size
-        //  break;
+        char c = *(s+i);
         if(c>='0'&&c<='9') 
             val += c-'0'; 
         else if (c>='a'&&c<='f')
