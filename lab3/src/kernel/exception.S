@@ -124,6 +124,8 @@ exception_handler:
   save_all
   bl print_register
   load_all
+loo:
+  b loo  
   eret
 
 .data

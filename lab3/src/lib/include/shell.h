@@ -9,6 +9,7 @@
 #include "fdt.h"
 #include "program.h"    
 #include "timer.h"
+#include "mm.h"
 
 void shell();
 

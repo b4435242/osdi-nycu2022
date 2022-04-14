@@ -2,6 +2,9 @@
 
 void shell(){
 
+    uart_unmask_aux();
+
+
     while(1) {
         char input[100];
         uart_puts("#");
@@ -19,8 +22,8 @@ void shell(){
         } else if (!_strncmp(input, "cat", 3)) {
             cpio_cat();
         } else if (!_strncmp(input, "malloc", 6)){
-            char* str1=simple_malloc(30);
-            char* str2=simple_malloc(20);
+            char* str1=heap_malloc(30);
+            char* str2=heap_malloc(20);
             str1 = "Hi! It is the first malloc\n";
             str2 = "The second malloc\n";
             uart_puts(str1);
@@ -53,6 +56,13 @@ void shell(){
 
             
             add_timer(uart_puts, msg, atoi(seconds));
+        } else if (!_strncmp(input, "mm", 2)){
+            /* mm Test */
+            void* p = malloc(2*PAGE_SIZE);
+            free(p);
+            void *arr = malloc(32);
+            free(arr);
+            /* mm Test END */      
         }
         
 

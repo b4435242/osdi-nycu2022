@@ -1,11 +1,11 @@
-#include "../lib/uart.h"
+#include "../lib/include/uart.h"
 
 
 
 void load_kernel(){
 
-    register unsigned long x20 asm("x20");
-    unsigned long DTB_BASE = x20;
+    register uint64_t x20 asm("x20");
+    uint64_t DTB_BASE = x20;
 
     unsigned int kernel_size = 0;
     char* p = (char*)0x80000;
@@ -41,7 +41,7 @@ void load_kernel(){
     }
     uart_puts("[Uartboot] Received all kernel image.\n\r");
 
-    void (*kernel_boot)(unsigned long) = (void *)p;
+    void (*kernel_boot)(uint64_t) = (void *)p;
     kernel_boot(DTB_BASE);
 
 }

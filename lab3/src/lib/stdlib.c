@@ -39,12 +39,7 @@ void* _memset(void *b, int c, int len)
     }
 }
 
-void* simple_malloc(size_t size){
-  static void *heap_top = 0;
-  void *old = heap_top;
-  heap_top += size;
-  return old;
-}
+
 
 unsigned int hexstr_2_dec(char* s, int size){
     unsigned int val = 0;
@@ -136,4 +131,12 @@ void* memcpy(void *dest, const void *src, size_t n)
     {
         ((char*)dest)[i] = ((char*)src)[i];
     }
+}
+
+int ceil(float num){ // positive number
+  int inum = (int)num;
+    if (num == (float)inum) {
+        return inum;
+    }
+    return inum + 1;
 }

@@ -1,6 +1,6 @@
 #include "include/cpio.h"
 
-unsigned long CPIO_BASE;
+
 
 extraction cpio_search(char *name){
     cpio_newc_header* header = (cpio_newc_header*)CPIO_BASE;
@@ -87,7 +87,7 @@ void parse_cpio_header(cpio_newc_header* header, extraction *info) {
     char* name = (char*)header+CPIO_HEADER_SIZE;
     char* file = (char*)cpio_align((char*)header+CPIO_HEADER_SIZE+name_size);
     cpio_newc_header* next_header = (cpio_newc_header*)cpio_align((unsigned long)(file+file_size));
-    uart_hex(next_header);
+    uart_hex((uint32_t)next_header);
     uart_puts("\r\n");
 
     info->file=file;

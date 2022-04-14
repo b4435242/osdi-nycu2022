@@ -4,7 +4,7 @@
 #include "uart.h"
 #include "stdlib.h"
 
-typedef struct {
+typedef struct cpio_newc_header{
     char	   c_magic[6];
     char	   c_ino[8];
     char	   c_mode[8];
@@ -21,7 +21,7 @@ typedef struct {
     char	   c_check[8];
 } cpio_newc_header;
 
-typedef struct{
+typedef struct extraction{
     char *name;
     char *file;
     unsigned int namesize;
@@ -29,9 +29,12 @@ typedef struct{
     cpio_newc_header* next_header;
 } extraction;
 
+uint64_t CPIO_BASE;
+
 extraction cpio_search(char *name);
 void cpio_ls();
 void cpio_cat();
 void parse_cpio_header(cpio_newc_header* header, extraction *info); 
 unsigned long cpio_align (unsigned long v);
+
 #endif

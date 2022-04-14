@@ -1,7 +1,7 @@
 #ifndef __MBOX__
 #define __MBOX__
 
-#include "gpio.h"
+#include "mmio.h"
 #include "uart.h"
 
 extern unsigned int mailbox[30];
