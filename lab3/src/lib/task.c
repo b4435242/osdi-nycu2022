@@ -1,66 +1,89 @@
 #include "include/task.h"
 
-Task task_queue[100];
-int task_queue_size = 0;
-
-int priority_stack[100];
-int nested_size = 0;
+task task_queues[MAX_THREAD]; 
+int priority_stacks[MAX_THREAD][10];
+int nested_arr[MAX_THREAD];
 
 void add_task(callback_ptr callback, int priority){
-    Task task = {
-        .callback = callback,
-        .priority = priority
-    };
+    task* t = Task(callback, priority);
     
     disable_int();
     // enqueue based on priority
-    int idx = task_queue_size;
-    for(int i=0; i<task_queue_size; i++){
-        if (task.priority<task_queue[i].priority){
-            idx = i;
-            break;
-        }
-    }
-
-    task_queue_size++;
-    for(int i=idx+1; i<task_queue_size; i++){
-        task_queue[i] = task_queue[i-1];
-    }
-    task_queue[idx] = task;
-    // enqueue complete
-
-    while (exec_task());
+    task *tq = &task_queues[current_thread()->tpid];
+    task_enqueue(tq, t);
+    
+    while (exec_task(tq));
 
     enable_int();
 }
 
-int exec_task(){
-    if (task_queue_size==0) return 0;
-    Task task = task_queue[0];
-
-    if (nested_size>0 && task.priority>=priority_stack[nested_size-1]) return 0;
+int exec_task(task* tq){
+    task* t = task_dequeue(tq);
     
-    
-    priority_stack[nested_size++] = task.priority;
+    int curr = current_thread()->tpid;
+    int *nested = &nested_arr[curr];
+    int *priority_stack = &priority_stacks[curr];
 
+    if (t==NULL) return 0;
+    if (*nested>0 && t->priority>=priority_stack[*nested-1]) return 0;
+    
+    priority_stack[*nested++] = t->priority;
     
     // do the task
     enable_int();
-    task.callback(NULL);
+    t->callback(NULL);
     disable_int();
 
-    nested_size--;
+    *nested--;
 
-    dequeue_task();
+    free(t);
     return 1;
 }
 
+task* Task(callback_ptr callback, int priority){
+    task* t = malloc(sizeof(task));
+    t->callback = callback;
+    t->priority = priority;
+    t->next = NULL;
+    t->prev = NULL;
+    return t;
+}
 
-void dequeue_task(){
-    // clean up finished task
-    // always the head of queue
-    for(int i=1; i<task_queue_size; i++){
-        task_queue[i-1] = task_queue[i];
+
+/* head is NOT NULL */
+void task_enqueue(task* head, task* p){
+    task *cur = head->next;
+    task *prev = head;
+    while (cur!=NULL && p->priority>=cur->priority) 
+    {
+        prev = cur;
+        cur = cur->next;
     }
-    task_queue_size--;
+
+    // prev <=> p <=> cur 
+    prev->next = p;
+    p->prev = prev;
+    p->next = cur;
+    if (cur!=NULL)
+        cur->prev = p;
+    
+}
+
+task* task_dequeue(task* head){
+    task *first = head->next;
+    if (first!=NULL){
+        // prev <=> p <=> next 
+        task* prev = first->prev;
+        task* next = first->next;
+
+        // prev <=> next 
+        prev->next = next;
+        next->prev = prev;
+    }
+    return first;
+}
+
+task* task_queue_top(task* head){
+    task *first = head->next;
+    return first;
 }

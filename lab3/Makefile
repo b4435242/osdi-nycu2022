@@ -80,10 +80,12 @@ bootloader:
 	qemu-system-aarch64 -M raspi3 -kernel build/bootloader.img -display none -serial null -serial pty -initrd initramfs.cpio -dtb bcm2710-rpi-3-b-plus.dtb
 
 run:
-	qemu-system-aarch64 -M raspi3 -kernel build/kernel8.img -display none -serial null -serial stdio -initrd initramfs.cpio -dtb bcm2710-rpi-3-b-plus.dtb
+	qemu-system-aarch64 -M raspi3 -kernel build/kernel8.img \
+	 -serial null -serial stdio \
+	-initrd initramfs.cpio -dtb bcm2710-rpi-3-b-plus.dtb \
 
 debug:
-	qemu-system-aarch64 -M raspi3 -kernel build/kernel8.img -display none \
+	qemu-system-aarch64 -M raspi3 -kernel build/kernel8.img \
 	-serial null -serial stdio -initrd initramfs.cpio -dtb bcm2710-rpi-3-b-plus.dtb \
 	-s -S
 

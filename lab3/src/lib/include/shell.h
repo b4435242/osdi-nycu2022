@@ -7,11 +7,18 @@
 #include "reset.h"
 #include "cpio.h"
 #include "fdt.h"
-#include "program.h"    
+#include "process.h"    
 #include "timer.h"
 #include "mm.h"
+#include "thread.h"
+#include "sys.h"
+
 
 void shell();
-
+void foo();
+void thread_test();
+void fork_test();
+void exec_test();
+void read_test();
 
 #endif

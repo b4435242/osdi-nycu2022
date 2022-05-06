@@ -4,6 +4,8 @@
 #include "../lib/include/irq.h"
 #include "../lib/include/mm.h"
 #include "../lib/include/stdlib.h"
+#include "../lib/include/thread.h"
+#include "../lib/include/process.h"
 
 #define FDT_CALLBACK_SIZE 2
 
@@ -24,6 +26,12 @@ void main()
     fdt_traverse((fdt_header*)(DTB_BASE), callbacks, FDT_CALLBACK_SIZE);
 
     startup_alloc(DTB_BASE);
+
+
+    thread_init();
+    tpid_offset_init();
+    sig_init();
+    periodical_schedule();
 
     shell();
 }

@@ -3,11 +3,12 @@
 
 #include "mmio.h"
 #include "uart.h"
+#include "stdlib.h"
 
 extern unsigned int mailbox[30];
 
 void get_board_revision();
 void get_arm_memory();
-int mailbox_call(unsigned char channel);
+int call_mailbox(unsigned char channel, uint32_t* mbox);
 
 #endif

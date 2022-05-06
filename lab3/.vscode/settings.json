@@ -10,6 +10,7 @@
         "shell.h": "c",
         "stdlib.h": "c",
         "task.h": "c",
-        "timer.h": "c"
+        "timer.h": "c",
+        "thread": "c"
     }
 }

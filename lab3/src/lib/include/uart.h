@@ -16,14 +16,14 @@ char uart_getc();
 char* uart_getline(char *buf);
 void uart_puts(char *s);
 void uart_hex(unsigned int d);
-void uart_puts_withSize(char* s, unsigned int size);
+size_t uart_puts_withSize(char* s, unsigned int size);
 
 void aux_handler();
-void uart_async_write(char* s);
-int uart_async_read(char* p);
+size_t uart_async_write(char* user_buf, size_t size);
+size_t uart_async_read(char* user_buf, size_t size);
 
-void uart_unmask_aux();
-void uart_mask_aux();
+void unmask_aux_int();
+void mask_aux_int();
 
 void uart_enable_transmit_int();
 void uart_disable_transmit_int();

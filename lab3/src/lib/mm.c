@@ -8,6 +8,9 @@ Pool* memory_pools[MAX_OBJECT_ORDER+1];
 /* highest level allocation API */
 
 void* malloc(size_t size){ 
+    if (size==0)
+        return;
+    
     size_t page = size/PAGE_SIZE; 
     if (page>0){ // page frame
         page += (size%PAGE_SIZE==0?0:1); // ceiling of page
@@ -19,6 +22,7 @@ void* malloc(size_t size){
 }
 
 void free(void* p){
+    if (p==NULL) return;
     uint32_t addr = (uint32_t)p;
     uint32_t index = get_frame_index(addr);
     // use index to decide whether object or page is going to be free
@@ -45,6 +49,7 @@ void startup_alloc(uint64_t DTB_BASE){
     for(int i=0; i<=MAX_OBJECT_ORDER; i++){
         memory_pools[i] = heap_malloc(sizeof(Pool));
         memory_pools[i]->next = NULL;
+        memory_pools[i]->left = 0;
     }
 
     /* dynamically setup frame_array with usable memory len from DTB */
@@ -55,7 +60,6 @@ void startup_alloc(uint64_t DTB_BASE){
 
     /* reserve memory */
     fdt_traverse_rsvmap(DTB_BASE, memory_reserve);
-    memory_reserve(0x100000, 0x100400); // user program code
 
     /* merge pages */ 
     uint32_t index = 0;
@@ -86,7 +90,7 @@ void memory_reserve(uint64_t start, uint64_t end){ // arg is addr
 
 
 void* heap_malloc(size_t size){
-  static void *heap_top = 0x10000;
+  static void *heap_top = 0x110000;
   void *old = heap_top;
   heap_top += cpio_align(size);
   return old;
@@ -113,9 +117,7 @@ uint32_t alloc_page(uint32_t req_num_page){
     Page *available_page;
     while (alloc_page_order<=MAX_PAGE_ORDER)
     {
-        uart_puts("order");
-        uart_hex(alloc_page_order);
-        uart_puts("\r\n");
+        
         available_page = get_first_page(free_list[alloc_page_order]);
         if (available_page!=NULL) break;
         else alloc_page_order++;
@@ -123,10 +125,7 @@ uint32_t alloc_page(uint32_t req_num_page){
 
 
     if (available_page==NULL) return -1;
-    uart_puts("index is");
-    uart_hex(&(available_page->index));
-
-    uart_puts("\r\n");
+   
     // delete available_page with alloc_page_order
     Page *head_available = free_list[alloc_page_order];
     uint32_t index = available_page->index;
@@ -197,19 +196,18 @@ uint32_t free_page(uint32_t index){
 void* alloc_object(size_t size){
     int alloc_object_order = nearest_2_exp_order(size);
 
+    Pool* pool;
+
     // In case of NO memory pool or the memory pool for certain object size is full 
     // Register a page as a new memory pool
-    if (memory_pools[alloc_object_order]==NULL || is_memory_pool_full(memory_pools[alloc_object_order])){
+    if ((pool=get_free_mem_pool(memory_pools[alloc_object_order]))==NULL){
         // alloc a new page frame
         size_t index = alloc_page(1);
-        set_page_taken(index, 0); // order 0 = size 1
-        remove_page_with_index(free_list[0], index);
 
         // new memory_pool
         uint32_t base = get_physical_addr_from_frame(index);
         size_t left = PAGE_SIZE/(1<<alloc_object_order); // left is initiated as the total count of objects in memory pool
-        Pool *pool = heap_malloc(sizeof(Pool));
-        pool->next = NULL;
+        pool = heap_malloc(sizeof(Pool));
         char *record = heap_malloc(left*sizeof(char));
         set_pool(pool, alloc_object_order, record, left, base, NULL);
 
@@ -217,10 +215,6 @@ void* alloc_object(size_t size){
         add_pool(memory_pools[alloc_object_order], pool);
     }
 
-    // select a NON-FULL memory pool
-    // traverse memory_pools
-    Pool *pool = memory_pools[alloc_object_order];
-    while(pool!=NULL && is_memory_pool_full(pool)) pool = pool->next; 
 
     // return object address from memory pool
     size_t object_size = 1<<alloc_object_order;
@@ -297,8 +291,16 @@ uint32_t nearest_2_exp_order(uint32_t n){
     return order;
 }
 
-int is_memory_pool_full(Pool *object){
-    return object->left == 0;
+Pool* get_free_mem_pool(Pool *head){
+    Pool *p = head->next;
+    while (p!=NULL)
+    {
+        if (p->left>0) 
+            return p;
+        p = p->next;
+    }
+    
+    return NULL;
 }
 
 Pool* search_memory_pool(uint32_t frame_index){
@@ -316,3 +318,14 @@ Pool* search_memory_pool(uint32_t frame_index){
 
 
 
+uint32_t nearest_2_exp(uint32_t n){
+    unsigned int v; // compute the next highest power of 2 of 32-bit v
+    v--;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    v++;
+    return v;
+}

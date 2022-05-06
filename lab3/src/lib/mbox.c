@@ -29,7 +29,7 @@ void get_board_revision(){
   // tags end
   mailbox[6] = END_TAG;
   
-  mailbox_call(8); // message passing procedure call, you should implement it following the 6 steps provided above.
+  call_mailbox(8, mailbox); // message passing procedure call, you should implement it following the 6 steps provided above.
 
   //printf("0x%x\n", mailbox[5]); // it should be 0xa020d3 for rpi3 b+
   //return mailbox[5];
@@ -47,14 +47,14 @@ void get_arm_memory(){
   // tags end
   mailbox[7] = END_TAG;
   
-  mailbox_call(8); // message passing procedure call, you should implement it following the 6 steps provided above.
+  call_mailbox(8, mailbox); // message passing procedure call, you should implement it following the 6 steps provided above.
 
   //return mailbox;
 }
 
-int mailbox_call(unsigned char channel){
+int call_mailbox(unsigned char channel, uint32_t* mbox){
     // step 1
-    unsigned int addr = ((unsigned int)((unsigned long)mailbox&~0xF))|channel;
+    unsigned int addr = ((unsigned int)((unsigned long)mbox&~0xF))|channel;
     // step 2
     while(*MAILBOX_STATUS & MAILBOX_FULL) {}
     // step 3
@@ -66,7 +66,7 @@ int mailbox_call(unsigned char channel){
         unsigned int val = *MAILBOX_READ;
         // step 6
         if (val==addr)
-            return mailbox[1]==REQUEST_SUCCEED;
+            return (mbox[1]==REQUEST_SUCCEED);
     }
     return 0;
 }

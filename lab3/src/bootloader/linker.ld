@@ -20,3 +20,4 @@ SECTIONS
 }
 __bss_size = (__bss_end - __bss_start)>>3;
 __bootloader_size = (__bootloader_end - __bootloader_start)>>3;
+_image_size = (__bss_end - _start);

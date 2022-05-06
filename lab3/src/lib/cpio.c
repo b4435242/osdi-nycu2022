@@ -2,25 +2,24 @@
 
 
 
-extraction cpio_search(char *name){
+extraction* cpio_search(char *name){
     cpio_newc_header* header = (cpio_newc_header*)CPIO_BASE;
-    extraction info;
+    extraction *info = malloc(sizeof(extraction));
     while(1) {
-        parse_cpio_header(header, &info);
+        parse_cpio_header(header, info);
         //uart_puts(info.name);
         //uart_puts("\r\n");
         // info.namesize counts '\0' 
-        if(!_strncmp(info.name, "TRAILER!!!", 10)||!_strncmp(info.name, name, info.namesize-1)) 
+        if(!_strncmp(info->name, "TRAILER!!!", 10)||!_strncmp(info->name, name, info->namesize-1)) 
             break;
 
-        header = info.next_header;
+        header = info->next_header;
 
     } 
-    if (!_strncmp(info.name, name, info.namesize-1)){
-        uart_puts("1");
+    if (!_strncmp(info->name, name, info->namesize-1)){
         return info;
     }
-    return info;
+    return NULL;
 }
 
 void cpio_ls(){
@@ -87,8 +86,6 @@ void parse_cpio_header(cpio_newc_header* header, extraction *info) {
     char* name = (char*)header+CPIO_HEADER_SIZE;
     char* file = (char*)cpio_align((char*)header+CPIO_HEADER_SIZE+name_size);
     cpio_newc_header* next_header = (cpio_newc_header*)cpio_align((unsigned long)(file+file_size));
-    uart_hex((uint32_t)next_header);
-    uart_puts("\r\n");
 
     info->file=file;
     info->name=name;

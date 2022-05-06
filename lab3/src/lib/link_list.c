@@ -56,11 +56,7 @@ void remove_page_with_index(Page* head, unsigned int index){ // currently O(n) /
 }
 
 Pool* add_pool(Pool* head, Pool* node){
-    if (head==NULL){
-        head = node;
-    } else {
-        Pool* p = head->next;
-        head->next = node;
-        node->next = p;
-    }
+    Pool* p = head->next;
+    head->next = node;
+    node->next = p;
 }

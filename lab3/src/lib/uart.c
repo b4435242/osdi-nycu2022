@@ -16,7 +16,9 @@
 #define AUX_MU_BAUD     ((volatile unsigned int*)(MMIO_BASE+0x00215068))
 char read_buf[1000];
 char write_buf[1000];
-int r=0, w=0;
+size_t r_buf_size=0;
+size_t w_buf_size=0, w_byte;
+int w_fin;
 
 /**
  * Set baud rate and characteristics (115200 8N1) and map to GPIO
@@ -95,10 +97,12 @@ void uart_puts(char *s) {
 }
 
 
-void uart_puts_withSize(char* s, unsigned int size){
-    for(int i=0; i<size; i++){
+size_t uart_puts_withSize(char* s, unsigned int size){
+    int i;
+    for(i=0; i<size; i++){
         uart_send(*(s+i));
     }
+    return i;
 }
 
 
@@ -119,48 +123,65 @@ void uart_hex(unsigned int d) {
 
 void aux_handler(){
     unsigned int iir = *AUX_MU_IIR;
-    unsigned int cause = iir & INT_AUX_MASK;
-    switch (cause){
-        case INT_AUX_RECV:
-            read_buf[r++] = *AUX_MU_IO;
-            break;
-        case INT_AUX_TRAN:
-            uart_puts_withSize(write_buf, w);
-            w = 0;
-            
-            break;
-        default:
-            break;
+    unsigned int aux = iir & INT_AUX_MASK;
+
+    if (aux==INT_AUX_RECV){
+        uart_r_int_handler();
+    } else if (aux==INT_AUX_TRAN){
+        uart_w_int_handler();
     }
-    uart_disable_transmit_int();
-    //uart_enable_recv_int();
 }
 
-void uart_async_write(char* s){
-    while(s[w]!='\0'){
-        write_buf[w] = s[w];
-        w++;
-    }
+void uart_r_int_handler(){
     uart_disable_recv_int();
-    uart_enable_transmit_int();
-}
-
-int uart_async_read(char* p){
-    for (int i=0; i<r; i++){
-        p[i] = read_buf[i];
+    while (*AUX_MU_LSR&0x01)
+    {
+       read_buf[r_buf_size++] = *AUX_MU_IO;
     }
-    int old = r;
-    r = 0;
-    return old;
 }
 
-void uart_unmask_aux(){
+void uart_w_int_handler(){
+    uart_disable_transmit_int();
+    while(w_byte<w_buf_size && (*AUX_MU_LSR&0x20)){ // write if available
+        *AUX_MU_IO = write_buf[w_byte++];
+    }
+    w_buf_size = 0;
+}
+
+size_t uart_async_write(char* user_buf, size_t size){
+    memcpy(write_buf, user_buf, size);
+    w_buf_size = size;
+    w_byte = 0;
+
+    // preempt to irq_handler->aux_handler
+    unmask_aux_int();
+    uart_enable_transmit_int();
+    // end of preemption
+    
+
+    //return w_byte; // w_byte is configured in aux_handler
+    return size;
+}
+
+size_t uart_async_read(char* user_buf, size_t size){
+    unmask_aux_int();
+    uart_enable_recv_int();
+
+    size_t r_size = min(size, r_buf_size);
+
+    memcpy(user_buf, read_buf, r_size);
+    r_buf_size = 0;
+
+    return r_size;
+}
+
+void unmask_aux_int(){
     //*((unsigned int*)IRQs1) = *((unsigned int*)IRQs1) | AUX_GPU_SOURCE; // second level interrupt controller enable bit29 AUX
     unsigned int val = mmio_get(IRQs1);
     mmio_put(IRQs1, val | AUX_GPU_SOURCE);
 }
 
-void uart_mask_aux(){
+void mask_aux_int(){
     //*((unsigned int*)IRQs1) = *((unsigned int*)IRQs1) & ~AUX_GPU_SOURCE; // second level interrupt controller disable bit29 AUX
     unsigned int val = mmio_get(IRQs1);
     mmio_put(IRQs1, val & ~AUX_GPU_SOURCE);

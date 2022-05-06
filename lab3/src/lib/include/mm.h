@@ -1,7 +1,7 @@
 #ifndef __MM__
 #define __MM__
 
-#define LOG
+//#define LOG
 
 #include "stdlib.h"
 #include "link_list.h"
@@ -70,9 +70,10 @@ void free_object(void* p, Pool* pool);
 
 void set_pool(Pool* pool, uint32_t order, char *record, uint32_t left, uint32_t base, Pool* next);
 uint32_t get_physical_addr_from_pool(uint32_t base, uint32_t order, uint32_t index);
-int is_memory_pool_full(Pool *object);
+Pool* get_free_mem_pool(Pool *object);
 Pool* search_memory_pool(uint32_t frame_index);
 
 uint32_t nearest_2_exp_order(uint32_t n);
+uint32_t nearest_2_exp(uint32_t n);
 
 #endif
