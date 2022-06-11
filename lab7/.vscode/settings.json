@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "initramfs.h": "c",
+        "tmpfs.h": "c",
+        "stdlib.h": "c"
+    }
+}
