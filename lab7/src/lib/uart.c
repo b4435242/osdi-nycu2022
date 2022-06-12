@@ -58,7 +58,6 @@ void uart_dev_init(){
     uart_f_ops->write = uart_dev_write;
 
     int dev_id = register_dev(uart_f_ops);
-    vfs_mkdir("/dev");
     vfs_mknod("/dev/uart", dev_id);
     vnode *target;
     vfs_open("/dev/uart", 0, &target); //0

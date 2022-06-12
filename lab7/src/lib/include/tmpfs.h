@@ -7,6 +7,7 @@
 #define TMPFS_FILE_SIZE PAGE_SIZE
 
 typedef struct tmpfs_vnode tmpfs_vnode;
+typedef struct vnode vnode;
 struct tmpfs_vnode {
     char content[TMPFS_FILE_SIZE];
     size_t size;

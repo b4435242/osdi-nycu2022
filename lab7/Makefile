@@ -85,7 +85,7 @@ run:
 	qemu-system-aarch64 -M raspi3 -kernel build/kernel8.img \
 	-serial null -serial stdio \
 	-initrd initramfs.cpio -dtb bcm2710-rpi-3-b-plus.dtb \
-	-display none -drive if=sd,file=$(IMG),format=raw
+	 -drive if=sd,file=$(IMG),format=raw
 	
 debug:
 	qemu-system-aarch64 -M raspi3 -kernel build/kernel8.img \

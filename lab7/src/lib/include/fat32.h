@@ -27,6 +27,7 @@ typedef struct bios_parameter_block bios_parameter_block;
 typedef struct dir_entry dir_entry;
 typedef struct internal_dir internal_dir;
 typedef struct cached_block cached_block;
+typedef struct vnode vnode;
 
 struct bios_parameter_block {
     uint16_t bytes_per_sector;          // IMPORTANT

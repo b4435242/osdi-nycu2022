@@ -9,7 +9,7 @@ handler handler_func[SYS_N]={ \
     signal_regis_handler, kill_handler, mmap_handler, \
     open_handler, close_handler, write_handler, read_handler, \
     mkdir_handler, mount_handler, chdir_handler, \
-    empty_handler, empty_handler, \
+    lseek64_handler, ioctl_handler, \
     sync_handler, sigreturn_handler \
 };
 
@@ -197,9 +197,31 @@ void mount_handler(uint64_t* tf){
     tf[0] = (int)ret;
 }
 
-int chdir_handler(uint64_t* tf){
+void chdir_handler(uint64_t* tf){
     const char *path = (char*)tf[0];
     int ret = vfs_chdir(path);
+    tf[0] = ret;
+}
+
+void lseek64_handler(uint64_t* tf){
+    int fd = (int)tf[0];
+    long offset = (long)tf[1];
+    int whence = (int)tf[2];
+    file* f = get_file_by_fd(fd);
+    int ret = vfs_lseek64(f, offset, whence);
+    tf[0] = ret;
+}
+
+void ioctl_handler(uint64_t* tf){
+    int fd = (int)tf[0];
+    uint32_t request = (uint32_t)tf[1];
+    void* buf = (void*)tf[2];
+    file* f = get_file_by_fd(fd);
+    int ret;
+    if (f!=NULL)
+        ret = vfs_ioctl(f, request, buf);
+    else 
+        ret = -1;
     tf[0] = ret;
 }
 

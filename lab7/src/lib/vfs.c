@@ -151,6 +151,16 @@ int vfs_lookup(const char* pathname, struct vnode** target){
     return 0;
 }
 
+int vfs_lseek64(struct file* file, long offset, int whence){
+    if (file->f_ops->lseek64==NULL){
+        if (whence==SEEK_SET)
+            file->f_pos = SEEK_SET + offset;
+        return file->f_pos;
+    }
+    
+    return file->f_ops->lseek64(file, offset, whence);
+}
+
 int vfs_chdir(const char* path){
     vnode* target;
     int ret = vfs_lookup(path, &target);
@@ -171,6 +181,12 @@ int vfs_mknod(const char* path, int dev_id){
         return ret;
     target->f_ops = get_dev_by_id(dev_id);
     return 0;
+}
+
+int vfs_ioctl(file* file, uint32_t req, void* buf){
+    if (req==0){
+
+    }
 }
 
 void set_filesystem(struct filesystem* fs){

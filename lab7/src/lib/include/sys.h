@@ -25,6 +25,8 @@
 #define SYS_MKDIR 15
 #define SYS_MOUNT 16
 #define SYS_CHDIR 17
+#define SYS_LSEEK 18
+#define SYS_IOCTL 19
 #define SYS_SYNC 20
 #define SYS_RET 21
 

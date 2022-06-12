@@ -35,7 +35,9 @@ void write_handler(uint64_t* tf);
 void read_handler(uint64_t* tf);
 void mkdir_handler(uint64_t* tf);
 void mount_handler(uint64_t* tf);
-int chdir_handler(uint64_t* tf);
+void chdir_handler(uint64_t* tf);
+void lseek64_handler(uint64_t* tf);
+void ioctl_handler(uint64_t* tf);
 
 void sync_handler(uint64_t* tf);
 void sigreturn_handler(uint64_t* tf);

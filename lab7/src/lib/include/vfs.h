@@ -3,11 +3,12 @@
 
 #include "stdlib.h"
 #include "mm.h"
+#include "mbox.h"
 
 #define MAX_FILESYSTEMS 10
 #define MAX_DEVS 10
 #define O_CREAT 0100
-
+#define SEEK_SET 0
 
 typedef struct vnode vnode;
 typedef struct vedge vedge;
@@ -71,7 +72,9 @@ int register_filesystem(struct filesystem* fs);
 int vfs_open(const char* pathname, int flags, struct file** target);
 int vfs_close(file* file);
 int vfs_write(struct file* file, const void* buf, size_t len);
-int vfs_read(struct file* file, void* buf, size_t len) ;
+int vfs_read(struct file* file, void* buf, size_t len);
+int vfs_lseek64(struct file* file, long offset, int whence) ;
+
 
 int vfs_create(const char* pathname);
 int vfs_mkdir(const char* pathname);
@@ -79,6 +82,7 @@ int vfs_mount(const char* target, const char* filesystem);
 int vfs_lookup(const char* pathname, struct vnode** target);
 int vfs_chdir(const char* path);
 int vfs_mknod(const char* path, int dev_id);
+int vfs_ioctl(file* file, uint32_t req, void* buf);
 
 void set_filesystem(struct filesystem* fs);
 filesystem* get_filesystem(const char* fs_name);

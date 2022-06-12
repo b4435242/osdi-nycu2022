@@ -7,9 +7,9 @@
 #include "../lib/include/thread.h"
 #include "../lib/include/process.h"
 #include "../lib/include/vm.h"
+#include "../lib/include/vfs.h"
 #include "../lib/include/initramfs.h"
 #include "../lib/include/tmpfs.h"
-#include "../lib/include/sd_driver.h"
 
 
 #define FDT_CALLBACK_SIZE 2
@@ -39,7 +39,9 @@ void main()
     // fs
     tmpfs_init();
     initramfs_init();
+    vfs_mkdir("/dev");
     uart_dev_init();
+    framebuf_dev_init();
     fat32_init();
  
 
