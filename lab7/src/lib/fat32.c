@@ -50,14 +50,6 @@ void fat32_init(){
     fat_region_lba_range = bpb.count_sectors_per_FAT32 * bpb.FAT_count;
     data_region_lba = fat_region_lba + fat_region_lba_range;
     
-    file* f;
-    int fd = vfs_open("/boot/FAT_R.TXT", 64, &f);
-    fat32_sync();
-    if (fd>0){
-        vfs_write(f, "fat_r test", 10);
-        vfs_close(f);
-        fat32_sync();
-    }
 }
 
 
@@ -337,24 +329,29 @@ internal_dir* search_dir(uint32_t first_cluster, char* component_name){
     char* filename = strtok_r(tmp, ".");
     char* ext = strtok_r(NULL, ".");
 
+
     do{
         read_fat_data(cluster_number, buf);
         
         for(int i=0; i<cluster_size; i+=32){
-            parse_dir_entry(&buf[i], &dir);
+            //parse_dir_entry(&buf[i], &dir);
+            dir_entry* dir = &buf[i];
             uint8_t first_byte = *((uint8_t*)&dir);
             if (first_byte==0x00)
                 continue;
-            
-            if (!_strncmp(filename, dir.filename, len(filename)) && (ext==NULL || !_strncmp(ext, dir.extension, len(ext)))){
+            char* dir_filename = strtok_r(dir->filename, " ");
+            char* dir_ext = strtok_r(dir->extension, " ");
+            if (!strcmp(filename, dir_filename) && (ext==NULL || !strcmp(ext, dir_ext))){
                 internal_dir* internal = k_malloc(sizeof(internal_dir));
-                internal->first_cluster = dir.eaIndex<<16 | dir.firstCluster;
-                internal->filesize = dir.fileSize;
+                internal->first_cluster = dir->eaIndex<<16 | dir->firstCluster;
+                internal->filesize = dir->fileSize;
                 return internal;
             }
         
         }
     } while((cluster_number=get_cluster_map(cluster_number))<=DATA_CLUSTER_U_BOUND && cluster_number>=DATA_CLUSTER_L_BOUND);
+
+    free(tmp);
 
     return NULL;
 }
@@ -379,14 +376,15 @@ int set_dir_entry(uint32_t first_cluster, char* component_name, internal_dir* in
             uint8_t first_byte = *((uint8_t*)&buf[i]);
             if (first_byte==0x00)
                 continue;
-            parse_dir_entry(&buf[i], &dir);
-            if (!_strncmp(filename, dir.filename, len(filename)) && (ext==NULL || !_strncmp(ext, dir.extension, len(ext)))){
+            //parse_dir_entry(&buf[i], &dir);
+            dir_entry* dir = &buf[i];
+            if (!_strncmp(filename, dir->filename, len(filename)) && (ext==NULL || !_strncmp(ext, dir->extension, len(ext)))){
                 // internal -> dir table entry
-                dir.fileSize = internal->filesize;
-                dir.eaIndex = (uint16_t)(internal->first_cluster)>>16;
-                dir.firstCluster = (uint16_t)internal->first_cluster;
+                dir->fileSize = internal->filesize;
+                dir->eaIndex = (uint16_t)(internal->first_cluster)>>16;
+                dir->firstCluster = (uint16_t)internal->first_cluster;
                 
-                memcpy(&buf[i], &dir, sizeof(dir_entry));
+               // memcpy(&buf[i], &dir, sizeof(dir_entry));
                 write_fat_data(cluster_number, buf);
                 return 0;
             }
@@ -443,12 +441,12 @@ void set_cluster_map(uint32_t index, uint32_t val){
 }
 
 void read_fat_data(uint32_t index, void* buf){
-    uint32_t lba = data_region_lba + index;
+    uint32_t lba = data_region_lba + (index-2) * bpb.sectors_per_cluster;
     readblock(lba, buf);
 }
 
 void write_fat_data(uint32_t index, void* buf){
-    uint32_t lba = data_region_lba + index;
+    uint32_t lba = data_region_lba + (index-2) * bpb.sectors_per_cluster;
     writeblock(lba, buf);
 }
 
@@ -515,20 +513,20 @@ static uint32_t readi32(uint8_t *buff, size_t offset) {
 }
 
 void parse_dir_entry(char* buf, dir_entry* entry){
-    memcpy(&entry->filename, buf, 8);
-    memcpy(&entry->extension, &buf[8], 3);
+    memcpy(entry->filename, buf, 8);
+    memcpy(entry->extension, &buf[8], 3);
     memcpy(&entry->attributes, &buf[11], 1);
     memcpy(&entry->reserved, &buf[12], 1);
     memcpy(&entry->creationTimeMs, &buf[13], 1);
     memcpy(&entry->creationTime, &buf[14], 2);
     memcpy(&entry->creationDate, &buf[16], 2);
     memcpy(&entry->lastAccessTime, &buf[18], 2);
-    memcpy(&entry->eaIndex, &buf[20], 2);
     memcpy(&entry->modifiedTime, &buf[22], 2);
     memcpy(&entry->modifiedDate, &buf[24], 2);
-    memcpy(&entry->firstCluster, &buf[26], 2);
-    memcpy(&entry->fileSize, &buf[28], 4);
 
+    entry->eaIndex = readi16(entry, 20);
+    entry->firstCluster = readi16(entry, 26);
+    entry->fileSize = readi32(&buf[28], 4);
 }
 
 void fat32_sync(){
@@ -572,10 +570,12 @@ dir_entry* internal_to_dir_table_entry(internal_dir* internal){
         char* filename = strtok_r(tmp, ".");
         char* ext = strtok_r(NULL, ".");
 
+        memset(dir->filename, 0, 8);
+        memset(dir->extension, 0, 8);
         if (filename!=NULL)
-            memcpy(dir->filename, filename, 8);
+            memcpy(dir->filename, filename, len(filename));
         if (ext!=NULL)
-            memcpy(dir->extension, ext, 3);
+            memcpy(dir->extension, ext, len(ext));
         
         free(tmp);
     }

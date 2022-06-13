@@ -129,4 +129,8 @@ void parse_dir_entry(char* buf, dir_entry* entry);
 dir_entry* internal_to_dir_table_entry(internal_dir* internal);
 void fat32_read_data_to_cache(internal_dir* internal, uint32_t cluster_number);
 cached_block* get_cache_from_internal(internal_dir* internal, uint32_t cluster_number);
+
+static uint32_t readi32(uint8_t *buff, size_t offset);
+static uint16_t readi16(uint8_t *buff, size_t offset);
+
 #endif
