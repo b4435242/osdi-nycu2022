@@ -570,8 +570,8 @@ dir_entry* internal_to_dir_table_entry(internal_dir* internal){
         char* filename = strtok_r(tmp, ".");
         char* ext = strtok_r(NULL, ".");
 
-        memset(dir->filename, 0, 8);
-        memset(dir->extension, 0, 8);
+        memset(dir->filename, ' ', 8);
+        memset(dir->extension, ' ', 8);
         if (filename!=NULL)
             memcpy(dir->filename, filename, len(filename));
         if (ext!=NULL)
