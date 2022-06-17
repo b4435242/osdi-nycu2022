@@ -10,10 +10,9 @@
 #include <sys/ioctl.h>
 #define PHYSICAL_NAND_NUM (13)
 #define LOGICAL_NAND_NUM (10)
-#define BLOCK_PER_NAND 1
-#define PHYSICAL_BLOCK_NUM (BLOCK_PER_NAND*PHYSICAL_NAND_NUM) 
 #define NAND_SIZE_KB (50)
 #define INVALID_PCA     (0xFFFFFFFF)
+#define FREE_LBA     (0xFFFFFFF0)
 #define INVALID_LBA     (0xFFFFFFFF)
 #define FREE_BLOCK     (0xFFFFFFFF)
 #define OUT_OF_BLOCK     (0xFFFF)
@@ -22,7 +21,7 @@
 #define NAND_LOCATION  "/home/bill/Desktop/course/osdi-nycu2022/final"
 
 #define GC_THRD 3
-#define GC_CLEAN 2
+#define GC_CLEAN 3
 
 enum
 {
@@ -30,3 +29,8 @@ enum
     SSD_GET_PHYSIC_SIZE   = _IOR('E', 1, size_t),
     SSD_GET_WA            = _IOR('E', 2, size_t),
 };
+
+ #define min(a,b) \
+   ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a < _b ? _a : _b; })
